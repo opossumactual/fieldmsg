@@ -5,22 +5,6 @@ import sys
 
 from fieldmsg import __version__
 
-EXAMPLE_CONFIG = """\
-[identity]
-display_name = "Field Unit Alpha"
-# identity is auto-generated on first run and stored at ~/.fieldmsg/identity
-
-[lxmf]
-propagation_node = ""       # destination hash of preferred propagation node
-sync_interval = 300         # seconds between propagation syncs
-announce_at_start = true    # announce on startup
-announce_interval = 600     # periodic re-announce interval, 0 to disable
-
-[storage]
-db_path = "~/.fieldmsg/messages.db"
-max_age_days = 90           # auto-cleanup old messages, 0 to disable
-"""
-
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -73,8 +57,9 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.generate_config:
-        sys.stdout.write(EXAMPLE_CONFIG)
-        raise SystemExit(0)
+        from fieldmsg.config import generate_example_config
+        print(generate_example_config())
+        sys.exit(0)
 
     if args.command == "send":
         print(f"[stub] Would send to {args.destination}: {args.message}")
