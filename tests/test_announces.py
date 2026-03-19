@@ -1,5 +1,5 @@
 import time
-from fieldmsg.announces import format_announce, _relative_time
+from fieldmsg.announces import format_announce, relative_time
 
 
 def test_format_with_display_name():
@@ -19,17 +19,17 @@ def test_format_without_display_name():
     assert "hops" not in result  # singular
 
 
-def test_relative_time_just_now():
-    assert _relative_time(time.time()) == "just now"
+def testrelative_time_just_now():
+    assert relative_time(time.time()) == "just now"
 
 
-def test_relative_time_minutes():
-    assert _relative_time(time.time() - 120) == "2m ago"
+def testrelative_time_minutes():
+    assert relative_time(time.time() - 120) == "2m ago"
 
 
-def test_relative_time_hours():
-    assert _relative_time(time.time() - 7200) == "2h ago"
+def testrelative_time_hours():
+    assert relative_time(time.time() - 7200) == "2h ago"
 
 
-def test_relative_time_days():
-    assert _relative_time(time.time() - 172800) == "2d ago"
+def testrelative_time_days():
+    assert relative_time(time.time() - 172800) == "2d ago"

@@ -162,6 +162,10 @@ class Core:
         os.makedirs(os.path.dirname(db_path), exist_ok=True)
         self.store = Store(db_path)
 
+        # Announce at start if configured
+        if self.config.announce_at_start:
+            self.announce()
+
         log.info("Core setup complete — %s", self.get_own_hash())
 
         # Auto-cleanup old messages on startup

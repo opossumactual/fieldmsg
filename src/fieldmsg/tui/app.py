@@ -170,7 +170,7 @@ class FieldMsgApp(App):
         self.call_from_thread(self._handle_status, msg_id, status)
 
     def _handle_status(self, msg_id, status):
-        pass  # will be enhanced when chat view exists
+        pass  # Chat view handles its own status updates when active
 
     # ── View switching ─────────────────────────────────────────────
 

@@ -594,8 +594,12 @@ class TestCoreMethods:
         assert len(h) > 0
 
     def test_announce_calls_router(self):
+        # setup() already announces once (announce_at_start=True by default),
+        # so calling announce() again should result in 2 total calls.
+        mock_router = self.mock_lxmf.LXMRouter.return_value
+        calls_before = mock_router.announce.call_count
         self.core.announce()
-        self.mock_lxmf.LXMRouter.return_value.announce.assert_called_once()
+        assert mock_router.announce.call_count == calls_before + 1
 
     def test_sync_no_propagation_node(self):
         """sync_propagation_node with no configured node just logs a warning."""

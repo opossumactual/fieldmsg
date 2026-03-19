@@ -8,7 +8,7 @@ from textual.widgets import Static, ListView, ListItem, Label, Input
 from textual.screen import ModalScreen
 
 from fieldmsg.core import Core
-from fieldmsg.announces import _relative_time
+from fieldmsg.announces import relative_time
 
 
 class ContactItem(ListItem):
@@ -22,7 +22,7 @@ class ContactItem(ListItem):
         self.last_seen = last_seen
 
     def compose(self) -> ComposeResult:
-        seen = _relative_time(self.last_seen) if self.last_seen else "never"
+        seen = relative_time(self.last_seen) if self.last_seen else "never"
         yield Label(f"[b]{self.nickname}[/b]  [{self.peer_hash[:12]}..] last seen: {seen}")
 
 
