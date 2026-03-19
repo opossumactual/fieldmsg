@@ -19,7 +19,6 @@ MainPanel {
     padding: 0 0 1 0;
 }
 
-NavItem {
-    height: 1;
-    padding: 0 1;
+Sidebar:focus-within {
+    border-right: solid $accent;
 }

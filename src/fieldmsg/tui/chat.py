@@ -74,6 +74,11 @@ class ChatView(Vertical):
         dock: bottom;
         margin: 0 1;
     }
+    ChatView .empty-chat {
+        padding: 2;
+        text-align: center;
+        color: $text-muted;
+    }
     """
 
     def __init__(self, core: Core, peer_hash: str):
@@ -109,16 +114,22 @@ class ChatView(Vertical):
     def _load_messages(self) -> None:
         scroll = self.query_one("#message-scroll", ScrollableContainer)
         messages = self.core.store.get_messages(self.peer_hash)
-        for msg in messages:
-            scroll.mount(
-                MessageBubble(
-                    direction=msg["direction"],
-                    content=msg["content"],
-                    timestamp=msg["timestamp"],
-                    status=msg["status"],
+        if not messages:
+            scroll.mount(Static(
+                "No messages yet. Type below to start the conversation.",
+                classes="empty-chat",
+            ))
+        else:
+            for msg in messages:
+                scroll.mount(
+                    MessageBubble(
+                        direction=msg["direction"],
+                        content=msg["content"],
+                        timestamp=msg["timestamp"],
+                        status=msg["status"],
+                    )
                 )
-            )
-        scroll.scroll_end(animate=False)
+            scroll.scroll_end(animate=False)
 
     def _on_new_message(self, msg_id, source_hash, content, timestamp):
         """Called from Reticulum's thread."""

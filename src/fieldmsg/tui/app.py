@@ -71,8 +71,6 @@ class SearchScreen(ModalScreen):
 class NavItem(Static):
     """A clickable navigation item in the sidebar."""
 
-    can_focus = True
-
     DEFAULT_CSS = """
     NavItem {
         height: 1;
@@ -80,9 +78,7 @@ class NavItem(Static):
     }
     NavItem:hover {
         background: $boost;
-    }
-    NavItem:focus {
-        background: $boost;
+        cursor: pointer;
     }
     """
 
