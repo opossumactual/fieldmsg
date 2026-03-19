@@ -48,7 +48,6 @@ class AnnouncesView(Vertical):
 
     BINDINGS = [
         ("a", "add_contact", "Add to Contacts"),
-        ("enter", "start_chat", "Chat"),
     ]
 
     def __init__(self, core: Core):
@@ -88,10 +87,9 @@ class AnnouncesView(Vertical):
             self.core.store.save_contact(item.peer_hash, name, item.display_name, item.timestamp)
             self.notify(f"Added {name} to contacts")
 
-    def action_start_chat(self) -> None:
-        lv = self.query_one("#announce-list", ListView)
-        if lv.highlighted_child and isinstance(lv.highlighted_child, AnnounceItem):
-            item = lv.highlighted_child
+    def on_list_view_selected(self, event: ListView.Selected) -> None:
+        if isinstance(event.item, AnnounceItem):
+            item = event.item
             if not self.core.store.get_contact(item.peer_hash):
                 name = item.display_name or item.peer_hash[:12]
                 self.core.store.save_contact(item.peer_hash, name, item.display_name, item.timestamp)

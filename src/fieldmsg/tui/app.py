@@ -34,8 +34,8 @@ class NewMessageScreen(ModalScreen):
 
     def compose(self) -> ComposeResult:
         with Vertical(id="new-msg-dialog"):
-            yield Static("Enter destination hash or contact nickname:")
-            yield Input(placeholder="hash or nickname...", id="dest-input")
+            yield Static("Enter contact nickname or destination hash:")
+            yield Input(placeholder="nickname or 32-char hex hash...", id="dest-input")
 
     def on_input_submitted(self, event: Input.Submitted) -> None:
         self.dismiss(event.value.strip())
@@ -68,15 +68,46 @@ class SearchScreen(ModalScreen):
         self.dismiss(event.value.strip())
 
 
+class NavItem(Static):
+    """A clickable navigation item in the sidebar."""
+
+    can_focus = True
+
+    DEFAULT_CSS = """
+    NavItem {
+        height: 1;
+        padding: 0 1;
+    }
+    NavItem:hover {
+        background: $boost;
+    }
+    NavItem:focus {
+        background: $boost;
+    }
+    """
+
+    def __init__(self, label: str, view: str, **kwargs) -> None:
+        super().__init__(label, **kwargs)
+        self.view = view
+
+    def on_click(self) -> None:
+        if self.view == "inbox":
+            self.app.action_show_inbox()
+        elif self.view == "announces":
+            self.app.action_show_announces()
+        elif self.view == "contacts":
+            self.app.action_show_contacts()
+
+
 class Sidebar(Vertical):
     """Navigation sidebar with view links."""
 
     def compose(self) -> ComposeResult:
         yield Static("[b]fieldmsg[/b]", id="sidebar-title")
         yield Static("")
-        yield Static("[b]> Inbox[/b]", id="nav-inbox", classes="nav-item nav-active")
-        yield Static("  Announces", id="nav-announces", classes="nav-item")
-        yield Static("  Contacts", id="nav-contacts", classes="nav-item")
+        yield NavItem("[b]> Inbox[/b]", "inbox", id="nav-inbox")
+        yield NavItem("  Announces", "announces", id="nav-announces")
+        yield NavItem("  Contacts", "contacts", id="nav-contacts")
 
 
 class MainPanel(Vertical):
@@ -259,7 +290,7 @@ class FieldMsgApp(App):
             "contacts": "nav-contacts",
         }
         for key, widget_id in labels.items():
-            widget = self.query_one(f"#{widget_id}", Static)
+            widget = self.query_one(f"#{widget_id}", NavItem)
             name = key.capitalize()
             if key == active:
                 widget.update(f"[b]> {name}[/b]")

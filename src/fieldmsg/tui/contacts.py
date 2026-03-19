@@ -78,7 +78,6 @@ class ContactsView(Vertical):
     """
 
     BINDINGS = [
-        ("enter", "start_chat", "Chat"),
         ("e", "edit_contact", "Edit"),
         ("d", "delete_contact", "Delete"),
     ]
@@ -111,10 +110,9 @@ class ContactsView(Vertical):
                     last_seen=c.get("last_seen"),
                 ))
 
-    def action_start_chat(self) -> None:
-        lv = self.query_one("#contact-list", ListView)
-        if lv.highlighted_child and isinstance(lv.highlighted_child, ContactItem):
-            self.app.show_conversation(lv.highlighted_child.peer_hash)
+    def on_list_view_selected(self, event: ListView.Selected) -> None:
+        if isinstance(event.item, ContactItem):
+            self.app.show_conversation(event.item.peer_hash)
 
     def action_edit_contact(self) -> None:
         lv = self.query_one("#contact-list", ListView)
