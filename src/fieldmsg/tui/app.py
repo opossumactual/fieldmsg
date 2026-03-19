@@ -78,7 +78,6 @@ class NavItem(Static):
     }
     NavItem:hover {
         background: $boost;
-        cursor: pointer;
     }
     """
 
