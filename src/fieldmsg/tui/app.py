@@ -268,6 +268,11 @@ class FieldMsgApp(App):
             else:
                 widget.update(f"  {name}")
 
+    def on_unmount(self) -> None:
+        if self.core:
+            self.core.shutdown()
+            self.core = None
+
     def action_quit(self) -> None:
         if self.core:
             self.core.shutdown()

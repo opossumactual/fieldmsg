@@ -164,6 +164,17 @@ class Core:
 
         log.info("Core setup complete — %s", self.get_own_hash())
 
+        # Auto-cleanup old messages on startup
+        cleaned = self.cleanup_old_messages()
+        if cleaned > 0:
+            log.info("Cleaned up %d old messages", cleaned)
+
+    def cleanup_old_messages(self) -> int:
+        """Delete messages older than max_age_days. Returns count deleted."""
+        if self.config.max_age_days > 0 and self.store:
+            return self.store.delete_old_messages(self.config.max_age_days)
+        return 0
+
     def shutdown(self) -> None:
         """Clean shutdown of store and Reticulum."""
         if self.store is not None:
