@@ -139,10 +139,17 @@ def run_daemon(config) -> int:
 
 def run_tui(config) -> int:
     """Launch the interactive TUI."""
+    from fieldmsg.core import Core
     from fieldmsg.tui.app import FieldMsgApp
 
-    app = FieldMsgApp(config)
+    # Reticulum registers signal handlers, which requires the main thread.
+    # Initialize Core here before Textual takes over the event loop.
+    core = Core(config)
+    core.setup()
+
+    app = FieldMsgApp(config, core=core)
     app.run()
+    core.shutdown()
     return 0
 
 

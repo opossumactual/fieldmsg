@@ -8,7 +8,7 @@ from textual.containers import Horizontal, Vertical
 from textual.reactive import reactive
 from textual.screen import ModalScreen
 from textual.widgets import Footer, Header, Input, Static
-from textual import work
+
 
 from fieldmsg.config import Config
 from fieldmsg.core import Core
@@ -102,10 +102,10 @@ class FieldMsgApp(App):
 
     current_view: reactive[str] = reactive("inbox")
 
-    def __init__(self, config: Config):
+    def __init__(self, config: Config, core: Core | None = None):
         super().__init__()
         self.config = config
-        self.core: Core | None = None
+        self.core = core
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -116,17 +116,15 @@ class FieldMsgApp(App):
         yield Footer()
 
     def on_mount(self) -> None:
-        self.core = Core(self.config)
+        if self.core is None:
+            # Fallback: create core here (won't work if Reticulum needs signals)
+            self.core = Core(self.config)
+            self.core.setup()
+
         self.core.on_message = self._on_message_received
         self.core.on_announce = self._on_announce_received
         self.core.on_delivery_status = self._on_delivery_status
-        self._setup_core()
-
-    @work(thread=True)
-    def _setup_core(self) -> None:
-        """Initialise the Core on a background thread."""
-        self.core.setup()
-        self.call_from_thread(self._on_core_ready)
+        self._on_core_ready()
 
     def _on_core_ready(self) -> None:
         """Called on the main thread once Core.setup() finishes."""
@@ -268,12 +266,5 @@ class FieldMsgApp(App):
             else:
                 widget.update(f"  {name}")
 
-    def on_unmount(self) -> None:
-        if self.core:
-            self.core.shutdown()
-            self.core = None
-
     def action_quit(self) -> None:
-        if self.core:
-            self.core.shutdown()
         self.exit()
