@@ -241,6 +241,9 @@ class Core:
             lxm.register_delivery_callback(self._delivery_status)
             lxm.register_failed_callback(self._delivery_status)
 
+            # handle_outbound packs the message, which generates lxm.hash
+            self.lxmf_router.handle_outbound(lxm)
+
             msg_id = RNS.hexrep(lxm.hash, delimit=False)
 
             # Persist outgoing message
@@ -254,7 +257,6 @@ class Core:
                     status="pending",
                 )
 
-            self.lxmf_router.handle_outbound(lxm)
             log.info("Sent message %s to %s", msg_id, dest_hash_hex)
             return msg_id
 
