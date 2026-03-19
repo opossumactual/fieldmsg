@@ -207,11 +207,7 @@ class TestRunDaemon:
 class TestRunTui:
     """run_tui dispatches correctly."""
 
-    def test_run_tui_import_error(self):
-        """run_tui raises ImportError when TUI module doesn't exist."""
-        from fieldmsg.config import Config
-        from fieldmsg.main import run_tui
-
-        config = Config()
-        with pytest.raises((ImportError, ModuleNotFoundError)):
-            run_tui(config)
+    def test_run_tui_imports(self):
+        """TUI module can be imported."""
+        from fieldmsg.tui.app import FieldMsgApp
+        assert FieldMsgApp is not None

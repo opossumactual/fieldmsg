@@ -6,11 +6,66 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.reactive import reactive
-from textual.widgets import Footer, Header, Static
+from textual.screen import ModalScreen
+from textual.widgets import Footer, Header, Input, Static
 from textual import work
 
 from fieldmsg.config import Config
 from fieldmsg.core import Core
+
+
+class NewMessageScreen(ModalScreen):
+    """Prompt for destination hash or contact nickname."""
+
+    DEFAULT_CSS = """
+    NewMessageScreen {
+        align: center middle;
+    }
+    #new-msg-dialog {
+        width: 60;
+        height: 8;
+        border: solid $accent;
+        background: $surface;
+        padding: 1 2;
+    }
+    """
+
+    BINDINGS = [("escape", "dismiss", "Cancel")]
+
+    def compose(self) -> ComposeResult:
+        with Vertical(id="new-msg-dialog"):
+            yield Static("Enter destination hash or contact nickname:")
+            yield Input(placeholder="hash or nickname...", id="dest-input")
+
+    def on_input_submitted(self, event: Input.Submitted) -> None:
+        self.dismiss(event.value.strip())
+
+
+class SearchScreen(ModalScreen):
+    """Search conversations."""
+
+    DEFAULT_CSS = """
+    SearchScreen {
+        align: center middle;
+    }
+    #search-dialog {
+        width: 60;
+        height: 8;
+        border: solid $accent;
+        background: $surface;
+        padding: 1 2;
+    }
+    """
+
+    BINDINGS = [("escape", "dismiss", "Cancel")]
+
+    def compose(self) -> ComposeResult:
+        with Vertical(id="search-dialog"):
+            yield Static("Search conversations:")
+            yield Input(placeholder="search...", id="search-input")
+
+    def on_input_submitted(self, event: Input.Submitted) -> None:
+        self.dismiss(event.value.strip())
 
 
 class Sidebar(Vertical):
@@ -42,6 +97,7 @@ class FieldMsgApp(App):
         Binding("ctrl+a", "show_announces", "Announces", show=True),
         Binding("ctrl+o", "show_contacts", "Contacts", show=True),
         Binding("ctrl+n", "new_message", "New Msg", show=True),
+        Binding("slash", "search", "Search", show=True),
     ]
 
     current_view: reactive[str] = reactive("inbox")
@@ -76,6 +132,20 @@ class FieldMsgApp(App):
         """Called on the main thread once Core.setup() finishes."""
         self.sub_title = self.core.get_own_hash()[:16]
         self._show_inbox()
+
+        # Periodic announce
+        if self.config.announce_interval > 0:
+            self.set_interval(self.config.announce_interval, self._periodic_announce)
+
+        # Periodic propagation sync
+        if self.config.propagation_node and self.config.sync_interval > 0:
+            self.set_interval(self.config.sync_interval, self._periodic_sync)
+
+    def _periodic_announce(self) -> None:
+        self.core.announce()
+
+    def _periodic_sync(self) -> None:
+        self.core.sync_propagation_node()
 
     # ── LXMF callback bridges (called from Reticulum threads) ──────
 
@@ -117,7 +187,38 @@ class FieldMsgApp(App):
         self._show_contacts()
 
     def action_new_message(self) -> None:
-        pass  # Task 12
+        self.push_screen(NewMessageScreen(), self._on_new_message_dest)
+
+    def _on_new_message_dest(self, dest: str | None) -> None:
+        if not dest:
+            return
+        # Try contact lookup first
+        contact = self.core.store.find_contact_by_nickname(dest)
+        if contact:
+            self.show_conversation(contact["hash"])
+        elif len(dest) == 32 and all(c in "0123456789abcdef" for c in dest.lower()):
+            self.show_conversation(dest.lower())
+        else:
+            self.notify(f"Unknown destination: {dest}", severity="error")
+
+    def action_search(self) -> None:
+        self.push_screen(SearchScreen(), self._on_search)
+
+    def _on_search(self, query: str | None) -> None:
+        if not query:
+            return
+        # Search contacts by nickname
+        contact = self.core.store.find_contact_by_nickname(query)
+        if contact:
+            self.show_conversation(contact["hash"])
+            return
+        # Search conversations for content match
+        convos = self.core.store.get_conversations()
+        for c in convos:
+            if query.lower() in c["display_name"].lower() or query.lower() in c["last_message"].lower():
+                self.show_conversation(c["peer_hash"])
+                return
+        self.notify(f"No results for: {query}", severity="warning")
 
     def _show_inbox(self) -> None:
         from fieldmsg.tui.inbox import InboxView
