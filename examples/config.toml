@@ -1,0 +1,13 @@
+[identity]
+display_name = "Field Unit Alpha"
+# identity is auto-generated on first run and stored at ~/.fieldmsg/identity
+
+[lxmf]
+propagation_node = ""       # destination hash of preferred propagation node
+sync_interval = 300         # seconds between propagation syncs
+announce_at_start = true    # announce on startup
+announce_interval = 600     # periodic re-announce interval, 0 to disable
+
+[storage]
+db_path = "~/.fieldmsg/messages.db"
+max_age_days = 90           # auto-cleanup old messages, 0 to disable
