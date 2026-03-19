@@ -163,7 +163,10 @@ class ChatView(Vertical):
         scroll.scroll_end(animate=False)
 
     def _refresh_messages(self):
-        scroll = self.query_one("#message-scroll", ScrollableContainer)
+        try:
+            scroll = self.query_one("#message-scroll", ScrollableContainer)
+        except Exception:
+            return  # ChatView was unmounted, nothing to refresh
         scroll.remove_children()
         self._load_messages()
 
@@ -173,6 +176,17 @@ class ChatView(Vertical):
             return
         event.input.value = ""
 
+        # Clear the "no messages" placeholder if present
+        try:
+            empty = self.query_one(".empty-chat")
+            empty.remove()
+        except Exception:
+            pass
+
         msg_id = self.core.send_message(self.peer_hash, text)
         if msg_id:
             self._append_message("out", text, time.time(), "pending")
+        else:
+            # Show the message as failed so the user sees what happened
+            self._append_message("out", text, time.time(), "failed")
+            self.app.notify("Message failed to send", severity="error")

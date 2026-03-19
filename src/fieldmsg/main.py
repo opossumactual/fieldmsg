@@ -2,6 +2,7 @@
 
 import argparse
 import logging
+import os
 import signal
 import sys
 import time
@@ -139,8 +140,17 @@ def run_daemon(config) -> int:
 
 def run_tui(config) -> int:
     """Launch the interactive TUI."""
+    import RNS
     from fieldmsg.core import Core
     from fieldmsg.tui.app import FieldMsgApp
+
+    # Suppress Reticulum's stdout logging — it corrupts the Textual TUI.
+    # Redirect to a log file instead.
+    RNS.loglevel = RNS.LOG_WARNING
+    log_path = os.path.join(config.fieldmsg_dir, "fieldmsg.log")
+    os.makedirs(config.fieldmsg_dir, exist_ok=True)
+    RNS.logdest = RNS.LOG_FILE
+    RNS.logfile = log_path
 
     # Reticulum registers signal handlers, which requires the main thread.
     # Initialize Core here before Textual takes over the event loop.
