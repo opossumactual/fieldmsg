@@ -1,0 +1,25 @@
+Screen {
+    background: $surface;
+}
+
+Sidebar {
+    width: 22;
+    dock: left;
+    border-right: solid $accent;
+    padding: 1;
+}
+
+MainPanel {
+    width: 1fr;
+}
+
+#sidebar-title {
+    text-style: bold;
+    color: $accent;
+    padding: 0 0 1 0;
+}
+
+.nav-item {
+    height: 1;
+    padding: 0 1;
+}
