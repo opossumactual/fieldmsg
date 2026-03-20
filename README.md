@@ -1,6 +1,6 @@
 # fieldmsg
 
-Lightweight LXMF messenger for [Reticulum](https://reticulum.network). NomadNet stripped down to just messaging — no page hosting, no Micron parser, no node browser. One process, under 500KB.
+Lightweight LXMF messenger for [Reticulum](https://reticulum.network). NomadNet stripped down to just messaging — no page hosting, no Micron parser, no node browser.
 
 ## Install
 
