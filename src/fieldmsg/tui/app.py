@@ -7,11 +7,26 @@ from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.reactive import reactive
 from textual.screen import ModalScreen
+from textual.theme import Theme
 from textual.widgets import Footer, Header, Input, Static
-
 
 from fieldmsg.config import Config
 from fieldmsg.core import Core
+
+BLACKOUT_THEME = Theme(
+    name="blackout",
+    primary="#ffffff",
+    secondary="#888888",
+    accent="#00ff00",
+    warning="#ffff00",
+    error="#ff0000",
+    success="#00ff00",
+    background="#000000",
+    surface="#000000",
+    panel="#000000",
+    boost="#111111",
+    dark=True,
+)
 
 
 class NewMessageScreen(ModalScreen):
@@ -133,6 +148,8 @@ class FieldMsgApp(App):
         super().__init__()
         self.config = config
         self.core = core
+        self.register_theme(BLACKOUT_THEME)
+        self.theme = "blackout"
 
     def compose(self) -> ComposeResult:
         yield Header()
