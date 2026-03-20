@@ -311,15 +311,14 @@ class InboxView(Horizontal):
             self._prev_on_message(msg_id, source_hash, content, timestamp)
 
     def _handle_incoming(self, msg_id, source_hash, content, timestamp):
-        # If this is the active chat, append inline
         if source_hash == self._active_peer:
+            # Active chat — just append the message, don't reload anything
             self._append_chat_message("in", content, timestamp, "delivered")
             self.core.store.mark_read(source_hash)
-        # Refresh conversation list
-        self._load_conversations()
-        # Re-select the active peer if we had one
-        if self._active_peer:
-            self._show_chat(self._active_peer)
+            self._update_convo_preview(source_hash, content)
+        else:
+            # Different peer — refresh the conversation list to show unread badge
+            self._load_conversations()
         self.app.bell()
 
     def _on_status_update(self, msg_id, status):
