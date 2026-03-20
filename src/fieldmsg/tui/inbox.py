@@ -307,8 +307,8 @@ class InboxView(Horizontal):
         self.app.call_from_thread(
             self._handle_incoming, msg_id, source_hash, content, timestamp
         )
-        if self._prev_on_message:
-            self._prev_on_message(msg_id, source_hash, content, timestamp)
+        # Don't forward to _prev_on_message — the app's handler would
+        # call _show_inbox() and rebuild the entire view.
 
     def _handle_incoming(self, msg_id, source_hash, content, timestamp):
         if source_hash == self._active_peer:
