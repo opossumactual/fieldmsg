@@ -222,7 +222,7 @@ class FieldMsgApp(App):
 
     def _on_core_ready(self) -> None:
         """Called on the main thread once Core.setup() finishes."""
-        self.sub_title = self.core.get_own_hash()[:16]
+        self.sub_title = self.core.get_own_hash()
         self._show_inbox()
 
         # Periodic announce
