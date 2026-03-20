@@ -124,6 +124,7 @@ class FieldMsgApp(App):
         Binding("ctrl+o", "show_contacts", "Contacts", show=True),
         Binding("ctrl+n", "new_message", "New Msg", show=True),
         Binding("slash", "search", "Search", show=True),
+        Binding("ctrl+r", "announce", "Announce", show=True),
     ]
 
     current_view: reactive[str] = reactive("inbox")
@@ -209,6 +210,11 @@ class FieldMsgApp(App):
     def action_show_contacts(self) -> None:
         self.current_view = "contacts"
         self._show_contacts()
+
+    def action_announce(self) -> None:
+        if self.core:
+            self.core.announce()
+            self.notify("Announced on network")
 
     def action_new_message(self) -> None:
         self.push_screen(NewMessageScreen(), self._on_new_message_dest)
