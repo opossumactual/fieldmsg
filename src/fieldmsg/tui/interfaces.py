@@ -40,15 +40,13 @@ def _mode_name(mode) -> str:
     return names.get(mode, "Unknown")
 
 
-class InterfaceCard(Static):
-    """Display block for a single Reticulum interface."""
+class InterfaceRow(Static):
+    """Single-line display for a Reticulum interface."""
 
     DEFAULT_CSS = """
-    InterfaceCard {
-        height: auto;
-        padding: 1 2;
-        margin: 0 0 1 0;
-        border: solid $accent;
+    InterfaceRow {
+        height: 1;
+        padding: 0 1;
     }
     """
 
@@ -58,39 +56,18 @@ class InterfaceCard(Static):
 
     def render(self) -> str:
         i = self.iface
-        status = "[green]ONLINE[/]" if i.online else "[red]OFFLINE[/]"
-        itype = i.__class__.__name__
+        status = "[green]ON[/]" if i.online else "[red]OFF[/]"
         name = i.name
+        rx = _format_bytes(i.rxb)
+        tx = _format_bytes(i.txb)
+        rate = _format_speed(i.bitrate)
 
-        lines = [
-            f"[b]{name}[/b]  {status}",
-            f"  Type: {itype}",
-            f"  Bitrate: {_format_speed(i.bitrate)}",
-            f"  RX: {_format_bytes(i.rxb)}  TX: {_format_bytes(i.txb)}",
-        ]
+        flags = ""
+        for f in ("IN", "OUT", "FWD", "RPT"):
+            if getattr(i, f, False):
+                flags += f[0]
 
-        rx_speed = getattr(i, "current_rx_speed", 0)
-        tx_speed = getattr(i, "current_tx_speed", 0)
-        if rx_speed > 0 or tx_speed > 0:
-            lines.append(f"  Speed: RX {_format_speed(rx_speed)}  TX {_format_speed(tx_speed)}")
-
-        mode = getattr(i, "mode", None)
-        if mode is not None:
-            lines.append(f"  Mode: {_mode_name(mode)}")
-
-        flags = []
-        if i.IN:
-            flags.append("IN")
-        if i.OUT:
-            flags.append("OUT")
-        if i.FWD:
-            flags.append("FWD")
-        if i.RPT:
-            flags.append("RPT")
-        if flags:
-            lines.append(f"  Flags: {' '.join(flags)}")
-
-        return "\n".join(lines)
+        return f"{status} [b]{name}[/b]  {rate}  rx:{rx} tx:{tx}  {flags}"
 
 
 class InterfacesView(Vertical):
@@ -152,4 +129,4 @@ class InterfacesView(Vertical):
             # Skip child interfaces (show parents only)
             if getattr(iface, "parent_interface", None) is not None:
                 continue
-            scroll.mount(InterfaceCard(iface))
+            scroll.mount(InterfaceRow(iface))
