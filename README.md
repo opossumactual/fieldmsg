@@ -2,6 +2,8 @@
 
 Lightweight LXMF messenger for [Reticulum](https://reticulum.network). NomadNet stripped down to just messaging — no page hosting, no Micron parser, no node browser.
 
+![fieldmsg screenshot](docs/images/screenshot.png)
+
 ## Install
 
 ```bash
