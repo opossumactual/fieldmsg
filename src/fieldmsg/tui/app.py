@@ -292,13 +292,17 @@ class FieldMsgApp(App):
         self._update_nav("contacts")
 
     def show_conversation(self, peer_hash: str) -> None:
-        """Switch to the chat view for a specific peer."""
-        from fieldmsg.tui.chat import ChatView
+        """Switch to inbox and open a specific conversation."""
+        from fieldmsg.tui.inbox import InboxView
 
+        self.current_view = "inbox"
         panel = self.query_one("#main-panel", MainPanel)
         panel.remove_children()
-        panel.mount(ChatView(self.core, peer_hash))
-        self.current_view = "chat"
+        inbox = InboxView(self.core)
+        panel.mount(inbox)
+        self._update_nav("inbox")
+        # Defer selecting the conversation until the widget is mounted
+        self.call_later(lambda: inbox._show_chat(peer_hash))
 
     def _update_nav(self, active: str) -> None:
         """Highlight the active navigation item in the sidebar."""
