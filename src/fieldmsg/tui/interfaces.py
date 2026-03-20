@@ -45,8 +45,10 @@ class InterfaceRow(Static):
 
     DEFAULT_CSS = """
     InterfaceRow {
-        height: 1;
+        height: 3;
         padding: 0 1;
+        margin: 0 0 1 0;
+        border: solid $accent;
     }
     """
 
