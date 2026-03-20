@@ -142,6 +142,14 @@ class Core:
         )
         self.lxmf_router.register_delivery_callback(self._lxmf_delivery)
 
+        # Cache our identity so other local apps (NomadNet, etc.) can recall it
+        RNS.Identity.remember(
+            packet_hash=None,
+            destination_hash=self.local_destination.hash,
+            public_key=self.identity.get_public_key(),
+            app_data=None,
+        )
+
         # Propagation node
         if self.config.propagation_node:
             try:
