@@ -278,8 +278,8 @@ class InboxView(Horizontal):
             self._append_chat_message("out", text, time.time(), "failed")
             self.app.notify("Message failed to send", severity="error")
 
-        # Update conversation list preview
-        self._update_convo_preview(self._active_peer, text)
+        # Reload conversation list so new conversations appear immediately
+        self._load_conversations()
 
     def _append_chat_message(self, direction, content, timestamp, status):
         scroll = self.query_one("#chat-scroll", ScrollableContainer)
