@@ -83,12 +83,8 @@ class SearchScreen(ModalScreen):
         self.dismiss(event.value.strip())
 
 
-class NavItem(Static, can_focus=True):
-    """A clickable/focusable navigation item in the sidebar."""
-
-    BINDINGS = [
-        ("enter", "activate", "Select"),
-    ]
+class NavItem(Static):
+    """A navigation item in the sidebar."""
 
     DEFAULT_CSS = """
     NavItem {
@@ -98,7 +94,7 @@ class NavItem(Static, can_focus=True):
     NavItem:hover {
         background: $boost;
     }
-    NavItem:focus {
+    NavItem.-highlighted {
         background: $boost;
         text-style: bold;
     }
@@ -108,23 +104,26 @@ class NavItem(Static, can_focus=True):
         super().__init__(label, **kwargs)
         self.view = view
 
-    def _activate(self) -> None:
-        if self.view == "inbox":
-            self.app.action_show_inbox()
-        elif self.view == "announces":
-            self.app.action_show_announces()
-        elif self.view == "contacts":
-            self.app.action_show_contacts()
-
     def on_click(self) -> None:
-        self._activate()
+        sidebar = self.parent
+        if isinstance(sidebar, Sidebar):
+            sidebar._select_view(self.view)
 
-    def action_activate(self) -> None:
-        self._activate()
 
+class Sidebar(Vertical, can_focus=True):
+    """Navigation sidebar — Tab to focus, arrows to move, Enter to select."""
 
-class Sidebar(Vertical):
-    """Navigation sidebar with view links."""
+    BINDINGS = [
+        ("up", "move_up", "Up"),
+        ("down", "move_down", "Down"),
+        ("enter", "activate", "Select"),
+    ]
+
+    NAV_VIEWS = ["inbox", "announces", "contacts"]
+
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self._cursor = 0  # index into NAV_VIEWS
 
     def compose(self) -> ComposeResult:
         yield Static("[b]fieldmsg[/b]", id="sidebar-title")
@@ -132,6 +131,43 @@ class Sidebar(Vertical):
         yield NavItem("[b]> Inbox[/b]", "inbox", id="nav-inbox")
         yield NavItem("  Announces", "announces", id="nav-announces")
         yield NavItem("  Contacts", "contacts", id="nav-contacts")
+
+    def on_focus(self) -> None:
+        self._update_highlight()
+
+    def on_blur(self) -> None:
+        # Remove highlight when sidebar loses focus
+        for item in self.query(NavItem):
+            item.remove_class("-highlighted")
+
+    def action_move_up(self) -> None:
+        self._cursor = max(0, self._cursor - 1)
+        self._update_highlight()
+
+    def action_move_down(self) -> None:
+        self._cursor = min(len(self.NAV_VIEWS) - 1, self._cursor + 1)
+        self._update_highlight()
+
+    def action_activate(self) -> None:
+        self._select_view(self.NAV_VIEWS[self._cursor])
+
+    def _select_view(self, view: str) -> None:
+        if view in self.NAV_VIEWS:
+            self._cursor = self.NAV_VIEWS.index(view)
+        if view == "inbox":
+            self.app.action_show_inbox()
+        elif view == "announces":
+            self.app.action_show_announces()
+        elif view == "contacts":
+            self.app.action_show_contacts()
+
+    def _update_highlight(self) -> None:
+        items = list(self.query(NavItem))
+        for i, item in enumerate(items):
+            if i == self._cursor:
+                item.add_class("-highlighted")
+            else:
+                item.remove_class("-highlighted")
 
 
 class MainPanel(Vertical):
@@ -306,7 +342,7 @@ class FieldMsgApp(App):
         self._update_nav("contacts")
 
     def show_conversation(self, peer_hash: str) -> None:
-        """Switch to inbox and open a specific conversation."""
+        """Switch to inbox and open a specific conversation with compose focused."""
         from fieldmsg.tui.inbox import InboxView
 
         self.current_view = "inbox"
@@ -315,8 +351,17 @@ class FieldMsgApp(App):
         inbox = InboxView(self.core)
         panel.mount(inbox)
         self._update_nav("inbox")
-        # Defer selecting the conversation until the widget is mounted
-        self.call_later(lambda: inbox._show_chat(peer_hash))
+
+        def _open_and_focus():
+            inbox._show_chat(peer_hash)
+            try:
+                compose = inbox.query_one("#chat-compose", Input)
+                compose.disabled = False
+                compose.focus()
+            except Exception:
+                pass
+
+        self.call_later(_open_and_focus)
 
     def _update_nav(self, active: str) -> None:
         """Highlight the active navigation item in the sidebar."""
