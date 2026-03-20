@@ -110,6 +110,32 @@ class NavItem(Static):
             sidebar._select_view(self.view)
 
 
+class ActionButton(Static):
+    """A clickable action button in the sidebar."""
+
+    DEFAULT_CSS = """
+    ActionButton {
+        width: 100%;
+        height: 1;
+        padding: 0 1;
+        color: $accent;
+    }
+    ActionButton:hover {
+        background: $boost;
+        text-style: bold;
+    }
+    """
+
+    def __init__(self, label: str, action: str, **kwargs) -> None:
+        super().__init__(label, markup=False, **kwargs)
+        self.action = action
+
+    def on_click(self) -> None:
+        action_method = getattr(self.app, f"action_{self.action}", None)
+        if action_method:
+            action_method()
+
+
 class Sidebar(Vertical, can_focus=True):
     """Navigation sidebar — Tab to focus, arrows to move, Enter to select."""
 
@@ -119,7 +145,7 @@ class Sidebar(Vertical, can_focus=True):
         ("enter", "activate", "Select"),
     ]
 
-    NAV_VIEWS = ["inbox", "announces", "contacts"]
+    NAV_VIEWS = ["inbox", "announces", "contacts", "interfaces"]
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
@@ -131,6 +157,12 @@ class Sidebar(Vertical, can_focus=True):
         yield NavItem("[b]> Inbox[/b]", "inbox", id="nav-inbox")
         yield NavItem("  Announces", "announces", id="nav-announces")
         yield NavItem("  Contacts", "contacts", id="nav-contacts")
+        yield NavItem("  Interfaces", "interfaces", id="nav-interfaces")
+        yield Static("")
+        yield ActionButton("+ New Message", "new_message", id="btn-new")
+        yield ActionButton("~ Announce", "announce", id="btn-announce")
+        yield ActionButton("/ Search", "search", id="btn-search")
+        yield ActionButton("x Quit", "quit", id="btn-quit")
 
     def on_focus(self) -> None:
         self._update_highlight()
@@ -160,6 +192,8 @@ class Sidebar(Vertical, can_focus=True):
             self.app.action_show_announces()
         elif view == "contacts":
             self.app.action_show_contacts()
+        elif view == "interfaces":
+            self.app.action_show_interfaces()
 
     def _update_highlight(self) -> None:
         items = list(self.query(NavItem))
@@ -190,6 +224,7 @@ class FieldMsgApp(App):
         Binding("ctrl+n", "new_message", "New Msg", show=True),
         Binding("slash", "search", "Search", show=True),
         Binding("ctrl+r", "announce", "Announce", show=True),
+        Binding("ctrl+f", "show_interfaces", "Ifaces", show=True),
     ]
 
     current_view: reactive[str] = reactive("inbox")
@@ -278,6 +313,10 @@ class FieldMsgApp(App):
         self.current_view = "contacts"
         self._show_contacts()
 
+    def action_show_interfaces(self) -> None:
+        self.current_view = "interfaces"
+        self._show_interfaces()
+
     def action_announce(self) -> None:
         if self.core:
             self.core.announce()
@@ -341,6 +380,14 @@ class FieldMsgApp(App):
         panel.mount(ContactsView(self.core))
         self._update_nav("contacts")
 
+    def _show_interfaces(self) -> None:
+        from fieldmsg.tui.interfaces import InterfacesView
+
+        panel = self.query_one("#main-panel", MainPanel)
+        panel.remove_children()
+        panel.mount(InterfacesView(self.core))
+        self._update_nav("interfaces")
+
     def show_conversation(self, peer_hash: str) -> None:
         """Switch to inbox and open a specific conversation with compose focused."""
         from fieldmsg.tui.inbox import InboxView
@@ -369,6 +416,7 @@ class FieldMsgApp(App):
             "inbox": "nav-inbox",
             "announces": "nav-announces",
             "contacts": "nav-contacts",
+            "interfaces": "nav-interfaces",
         }
         for key, widget_id in labels.items():
             widget = self.query_one(f"#{widget_id}", NavItem)
