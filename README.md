@@ -5,7 +5,7 @@ Lightweight LXMF messenger for [Reticulum](https://reticulum.network). NomadNet 
 ## Install
 
 ```bash
-git clone https://github.com/yourusername/fieldmsg.git
+git clone https://github.com/opossumactual/fieldmsg.git
 cd fieldmsg
 pip install -e .
 ```
