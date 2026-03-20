@@ -149,6 +149,14 @@ class Store:
         self._conn.commit()
         return cur.rowcount
 
+    def delete_conversation(self, peer_hash: str) -> int:
+        """Delete all messages for a peer. Returns count deleted."""
+        cur = self._conn.execute(
+            "DELETE FROM messages WHERE peer_hash = ?", (peer_hash,)
+        )
+        self._conn.commit()
+        return cur.rowcount
+
     # ── Contacts ──────────────────────────────────────────────────────
 
     def save_contact(
@@ -248,6 +256,12 @@ class Store:
             (limit,),
         )
         return cur.fetchall()
+
+    def clear_announces(self) -> int:
+        """Delete all announce records. Returns count deleted."""
+        cur = self._conn.execute("DELETE FROM announces")
+        self._conn.commit()
+        return cur.rowcount
 
     # ── General ───────────────────────────────────────────────────────
 

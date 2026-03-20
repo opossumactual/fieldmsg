@@ -48,6 +48,7 @@ class AnnouncesView(Vertical):
 
     BINDINGS = [
         ("a", "add_contact", "Add to Contacts"),
+        ("c", "clear_announces", "Clear All"),
     ]
 
     def __init__(self, core: Core):
@@ -86,6 +87,11 @@ class AnnouncesView(Vertical):
             name = item.display_name or item.peer_hash[:12]
             self.core.store.save_contact(item.peer_hash, name, item.display_name, item.timestamp)
             self.notify(f"Added {name} to contacts")
+
+    def action_clear_announces(self) -> None:
+        count = self.core.store.clear_announces()
+        self._refresh()
+        self.notify(f"Cleared {count} announces")
 
     def on_list_view_selected(self, event: ListView.Selected) -> None:
         if isinstance(event.item, AnnounceItem):

@@ -28,6 +28,10 @@ class ConversationItem(ListItem):
 class InboxView(Vertical):
     """Conversation list sorted by most recent."""
 
+    BINDINGS = [
+        ("d", "delete_conversation", "Delete"),
+    ]
+
     DEFAULT_CSS = """
     InboxView {
         height: 100%;
@@ -85,3 +89,15 @@ class InboxView(Vertical):
         item = event.item
         if isinstance(item, ConversationItem):
             self.app.show_conversation(item.peer_hash)
+
+    def action_delete_conversation(self) -> None:
+        try:
+            lv = self.query_one("#inbox-list", ListView)
+        except Exception:
+            return
+        if lv.highlighted_child and isinstance(lv.highlighted_child, ConversationItem):
+            item = lv.highlighted_child
+            name = item.display_name or item.peer_hash[:12]
+            self.core.store.delete_conversation(item.peer_hash)
+            self.notify(f"Deleted conversation with {name}")
+            self.app.action_show_inbox()
