@@ -83,8 +83,12 @@ class SearchScreen(ModalScreen):
         self.dismiss(event.value.strip())
 
 
-class NavItem(Static):
-    """A clickable navigation item in the sidebar."""
+class NavItem(Static, can_focus=True):
+    """A clickable/focusable navigation item in the sidebar."""
+
+    BINDINGS = [
+        ("enter", "activate", "Select"),
+    ]
 
     DEFAULT_CSS = """
     NavItem {
@@ -94,19 +98,29 @@ class NavItem(Static):
     NavItem:hover {
         background: $boost;
     }
+    NavItem:focus {
+        background: $boost;
+        text-style: bold;
+    }
     """
 
     def __init__(self, label: str, view: str, **kwargs) -> None:
         super().__init__(label, **kwargs)
         self.view = view
 
-    def on_click(self) -> None:
+    def _activate(self) -> None:
         if self.view == "inbox":
             self.app.action_show_inbox()
         elif self.view == "announces":
             self.app.action_show_announces()
         elif self.view == "contacts":
             self.app.action_show_contacts()
+
+    def on_click(self) -> None:
+        self._activate()
+
+    def action_activate(self) -> None:
+        self._activate()
 
 
 class Sidebar(Vertical):
